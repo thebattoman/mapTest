@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ILSAS - 3D Cuboid Building Model</title>
+  <title>ILSAS - 3D Campus Navigation</title>
 
   <!-- MapLibre GL JS CSS -->
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
@@ -852,17 +852,17 @@
 
     .block-cards-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       width: 100%;
-      max-width: 440px;
+      max-width: 520px;
     }
 
     .block-choice-card {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       border-radius: 20px;
-      padding: 24px 16px;
+      padding: 20px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -883,7 +883,7 @@
     }
 
     .block-icon-letter {
-      font-size: 56px;
+      font-size: 42px;
       font-weight: 900;
       color: #1e3a8a;
       line-height: 1;
@@ -892,7 +892,7 @@
     }
 
     .block-card-name {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       color: #64748b;
       letter-spacing: 0.8px;
@@ -1123,6 +1123,10 @@
         <div class="block-icon-letter">D</div>
         <div class="block-card-name">Block D</div>
       </div>
+      <div class="block-choice-card" onclick="chooseInitialBlock('ldc')">
+        <div class="block-icon-letter">LDC</div>
+        <div class="block-card-name">LDC</div>
+      </div>
     </div>
   </div>
 
@@ -1169,6 +1173,7 @@
       <li class="location-item" data-key="block_b">🏢 Block B</li>
       <li class="location-item" data-key="block_c">🏢 Block C</li>
       <li class="location-item" data-key="block_d">🏢 Block D</li>
+      <li class="location-item" data-key="ldc">🏢 LDC</li>
       <li class="location-item" data-key="dewan_makan">🍽️ Dewan Makan</li>
       <li class="location-item" data-key="auditorium">🎭 Auditorium</li>
       <li class="location-item" data-key="cafe_zamrud">☕ Cafe Zamrud</li>
@@ -1201,7 +1206,7 @@
       </button>
 
       <div id="legends-popup" class="legends-popup">
-        <div class="legend-item"><div class="legend-color-box" style="background: #e11d48;"></div> Red Marker (Block A, D)</div>
+        <div class="legend-item"><div class="legend-color-box" style="background: #e11d48;"></div> Red Marker (Block A, D, LDC)</div>
         <div class="legend-item"><div class="legend-color-box" style="background: #1e3a8a;"></div> Navy Marker (Block B)</div>
         <div class="legend-item"><div class="legend-color-box" style="background: #2563eb;"></div> Blue Marker (Cafes)</div>
         <div class="legend-item"><div class="legend-color-box" style="background: #e11d48; border-radius: 50%;"></div> User GPS Position</div>
@@ -1248,14 +1253,15 @@
     const DEFAULT_CENTER = [101.736030, 2.975701];
     const INITIAL_ZOOM = 16.3;
     const DEFAULT_BEARING = -14;
-    const DEFAULT_PITCH = 45; // Isometric view pitch default
+    const DEFAULT_PITCH = 45;
 
     const BOUNDING_BOX = [
       [101.733366, 2.972174], 
       [101.737937, 2.979556]  
     ];
 
-    const START_COORDINATE = [101.7357731, 2.976624];
+    // NEW START POSITION
+    const START_COORDINATE = [101.7364682, 2.9763841];
     let currentUserCoords = [...START_COORDINATE];
 
     const TELEPORT_COORDINATES = {
@@ -1291,54 +1297,110 @@
       ]
     };
 
-    // Block B Custom Route FeatureCollection
-    const BLOCK_B_ROUTE_GEOJSON = {
+    // --- EMBEDDED ROUTE GEOJSON DATA SOURCES ---
+    // Source 1: LDC Route
+    const ROUTE_LDC_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
+        { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [] } },
         {
           "type": "Feature",
           "properties": {},
           "geometry": {
             "type": "LineString",
             "coordinates": [
-              [101.7357731, 2.976624],
-              [101.7358831, 2.9761819],
-              [101.7357703, 2.9761284],
-              [101.7357872, 2.9760524],
-              [101.7353361, 2.9759257]
+              [101.7364682, 2.9763841],
+              [101.7371933, 2.9765872],
+              [101.7370537, 2.9772802],
+              [101.7372255, 2.9773462],
+              [101.73721, 2.9773967]
             ]
           }
         }
       ]
     };
 
-    // Block C Custom Route FeatureCollection
-    const BLOCK_C_ROUTE_GEOJSON = {
+    // Source 2: Block D Route
+    const ROUTE_BLOCK_D_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
+        { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [] } },
         {
           "type": "Feature",
           "properties": {},
           "geometry": {
             "type": "LineString",
             "coordinates": [
-              [101.7357731, 2.976624],
-              [101.7358831, 2.9761819],
-              [101.7357703, 2.9761284],
-              [101.7357872, 2.9760524],
-              [101.7353361, 2.9759257]
+              [101.7364682, 2.9763841],
+              [101.7358639, 2.9762219],
+              [101.735898, 2.9760764],
+              [101.7359662, 2.9761104]
             ]
           }
-        },
+        }
+      ]
+    };
+
+    // Source 3: Block C Route
+    const ROUTE_BLOCK_C_GEOJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [] } },
         {
           "type": "Feature",
           "properties": {},
           "geometry": {
             "type": "LineString",
             "coordinates": [
-              [101.7353417, 2.9759313],
-              [101.7352459, 2.9759031],
-              [101.7353164, 2.9756356]
+              [101.7364682, 2.9763841],
+              [101.7358635, 2.9762251],
+              [101.7359508, 2.9758734],
+              [101.7356111, 2.9757886],
+              [101.7356256, 2.975714]
+            ]
+          }
+        }
+      ]
+    };
+
+    // Source 4: Block B Route
+    const ROUTE_BLOCK_B_GEOJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [] } },
+        {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [101.7364682, 2.9763841],
+              [101.7358646, 2.9762229],
+              [101.7358778, 2.9761752],
+              [101.7357623, 2.9761357],
+              [101.7357805, 2.9760632],
+              [101.735642, 2.9760121]
+            ]
+          }
+        }
+      ]
+    };
+
+    // Source 5: Block A Route
+    const ROUTE_BLOCK_A_GEOJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [] } },
+        {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [101.7364682, 2.9763841],
+              [101.7358696, 2.9762236],
+              [101.7358271, 2.9763907],
+              [101.7355625, 2.9762996]
             ]
           }
         }
@@ -1354,6 +1416,7 @@
           [101.735724, 2.976320],
           [101.735013, 2.976135]
         ],
+        route: ROUTE_BLOCK_A_GEOJSON,
         images: [
           { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80', caption: 'Main Entrance' },
           { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80', caption: 'Lobby' },
@@ -1368,6 +1431,7 @@
           [101.735681, 2.976012],
           [101.734997, 2.975817]
         ],
+        route: ROUTE_BLOCK_B_GEOJSON,
         images: [
           { url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80', caption: 'Faculty Wing' },
           { url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80', caption: 'Lecture Room' }
@@ -1381,6 +1445,7 @@
           [101.734976, 2.975551],
           [101.735660, 2.975723]
         ],
+        route: ROUTE_BLOCK_C_GEOJSON,
         images: [
           { url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80', caption: 'Science Lab' },
           { url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80', caption: 'Study Area' }
@@ -1394,8 +1459,22 @@
           [101.735922, 2.976149],
           [101.736319, 2.976299]
         ],
+        route: ROUTE_BLOCK_D_GEOJSON,
         images: [
           { url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80', caption: 'Admin Plaza' }
+        ]
+      },
+      ldc: { 
+        name: 'LDC', 
+        coords: [101.737089, 2.977553], 
+        color: '#e11d48',
+        entries: [
+          [101.73721, 2.9773967]
+        ],
+        route: ROUTE_LDC_GEOJSON,
+        images: [
+          { url: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=80', caption: 'LDC Main Entrance' },
+          { url: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=1200&q=80', caption: 'LDC Learning Lab' }
         ]
       },
       dewan_makan: {
@@ -1403,6 +1482,7 @@
         coords: [101.736413, 2.976076],
         color: '#1e3a8a',
         entries: [],
+        route: null,
         images: [
           { url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80', caption: 'Dining Hall' },
           { url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80', caption: 'Food Stalls' }
@@ -1413,6 +1493,7 @@
         coords: [101.735415, 2.976567],
         color: '#e11d48',
         entries: [],
+        route: null,
         images: [
           { url: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80', caption: 'Main Stage' },
           { url: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80', caption: 'Seating Area' }
@@ -1423,6 +1504,7 @@
         coords: [101.736110, 2.977309],
         color: '#2563eb',
         entries: [],
+        route: null,
         images: [
           { url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80', caption: 'Outdoor Patio' },
           { url: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=80', caption: 'Barista Counter' }
@@ -1433,6 +1515,7 @@
         coords: [101.735748, 2.976494],
         color: '#1e3a8a',
         entries: [],
+        route: null,
         images: [
           { url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=80', caption: 'Helpdesk Counter' },
           { url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80', caption: 'Student Services' }
@@ -1445,7 +1528,7 @@
       style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
       center: DEFAULT_CENTER,
       zoom: INITIAL_ZOOM,
-      pitch: DEFAULT_PITCH, // Isometric 45-degree pitch
+      pitch: DEFAULT_PITCH,
       bearing: DEFAULT_BEARING,
       maxBounds: BOUNDING_BOX
     });
@@ -1760,7 +1843,7 @@
           'text-size': [
             'match',
             ['get', 'title'],
-            ['Block A', 'Block B', 'Block C', 'Block D'], 14,
+            ['Block A', 'Block B', 'Block C', 'Block D', 'LDC'], 14,
             7
           ],
           'text-offset': [0, -1.2],
@@ -2056,12 +2139,9 @@
       let closestPoint = coord;
       let minDistanceSq = Infinity;
 
-      let targetGeoJSON = null;
-      if (selectedLocationKey === 'block_b') targetGeoJSON = BLOCK_B_ROUTE_GEOJSON;
-      else if (selectedLocationKey === 'block_c') targetGeoJSON = BLOCK_C_ROUTE_GEOJSON;
-
-      if (targetGeoJSON) {
-        targetGeoJSON.features.forEach(feature => {
+      const targetBlock = BLOCKS[selectedLocationKey];
+      if (targetBlock && targetBlock.route) {
+        targetBlock.route.features.forEach(feature => {
           const lineCoords = feature.geometry.coordinates;
           for (let i = 0; i < lineCoords.length - 1; i++) {
             const projected = getClosestPointOnSegment(coord, lineCoords[i], lineCoords[i + 1]);
@@ -2193,10 +2273,8 @@
 
         const activeRouteSource = map.getSource('active-block-route-source');
         if (activeRouteSource) {
-          if (selectedKey === 'block_b') {
-            activeRouteSource.setData(BLOCK_B_ROUTE_GEOJSON);
-          } else if (selectedKey === 'block_c') {
-            activeRouteSource.setData(BLOCK_C_ROUTE_GEOJSON);
+          if (targetBlock.route) {
+            activeRouteSource.setData(targetBlock.route);
           } else {
             activeRouteSource.setData({
               type: 'FeatureCollection',
