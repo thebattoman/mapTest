@@ -348,7 +348,7 @@
 
     #joystick-left {
       bottom: 160px;
-      left: 30px;
+      left: 25px;
     }
 
     #joystick-right {
@@ -2601,7 +2601,7 @@
 
         // --- RIGHT JOYSTICK / KEYBOARD ROTATION ---
         if (rightJoyActive && Math.abs(rightJoyVector.x) > 0.05) {
-          userHeading = (userHeading + rightJoyVector.x * ROTATE_STEP * 1.5 + 360) % 360;
+          userHeading = (userHeading + rightJoyVector.x * ROTATE_STEP * 0.4 + 360) % 360;
           moved = true;
         }
 
