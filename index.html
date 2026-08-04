@@ -293,7 +293,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.12);
     }
 
-    /* --- MODE STATUS BADGE (INTERACTIVE) --- */
+    /* --- MODE STATUS BADGE --- */
     .mode-indicator {
       position: absolute;
       bottom: 110px;
@@ -327,11 +327,10 @@
       border-bottom-color: #1e3a8a;
     }
 
-    /* --- TOUCHSCREEN JOYSTICK (MANUAL MODE) --- */
+    /* --- DUAL JOYSTICKS (MANUAL MODE) --- */
     .joystick-container {
       position: absolute;
       bottom: 160px;
-      left: 30px;
       width: 100px;
       height: 100px;
       background: rgba(255, 255, 255, 0.25);
@@ -348,6 +347,14 @@
       display: block;
     }
 
+    .joystick-container.left-joy {
+      left: 30px;
+    }
+
+    .joystick-container.right-joy {
+      right: 30px;
+    }
+
     .joystick-thumb {
       position: absolute;
       top: 50%;
@@ -362,6 +369,24 @@
       box-shadow: 0 4px 12px rgba(225, 29, 72, 0.5);
       pointer-events: none;
       transition: transform 0.05s ease-out;
+    }
+
+    .joystick-label {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 800;
+      color: #1e3a8a;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 2px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     /* --- RADIAL BEARING SLIDER --- */
@@ -962,121 +987,6 @@
       0% { transform: scale(0.6); opacity: 0.9; }
       100% { transform: scale(2); opacity: 0; }
     }
-
-    /* --- PLAYER 2 RACER MARKER --- */
-    .p2-dot {
-      width: 16px;
-      height: 16px;
-      background-color: #2563eb;
-      border: 2.5px solid #ffffff;
-      border-radius: 4px;
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.7);
-      position: absolute;
-      z-index: 2;
-    }
-
-    /* --- RACING GAME OVERLAY & HUD --- */
-    .race-hud-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 9000;
-      pointer-events: none;
-      display: none;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .race-hud-overlay.active {
-      display: flex;
-    }
-
-    .race-top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      gap: 12px;
-    }
-
-    .race-card {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
-      border-radius: 16px;
-      padding: 12px 20px;
-      color: #ffffff;
-      border: 1.5px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .race-p1-card { border-left: 4px solid #e11d48; }
-    .race-p2-card { border-left: 4px solid #2563eb; }
-
-    .race-player-title {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .race-p1-card .race-player-title { color: #f43f5e; }
-    .race-p2-card .race-player-title { color: #60a5fa; }
-
-    .race-lap-counter {
-      font-size: 20px;
-      font-weight: 900;
-      margin-top: 2px;
-    }
-
-    .race-status-center {
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 10px 24px;
-      text-align: center;
-      border: 2px solid #38bdf8;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-    }
-
-    .race-status-text {
-      font-size: 16px;
-      font-weight: 900;
-      color: #38bdf8;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .race-controls-hint {
-      font-size: 10px;
-      color: #94a3b8;
-      font-weight: 700;
-      margin-top: 2px;
-    }
-
-    .race-exit-btn {
-      pointer-events: auto;
-      background: #e11d48;
-      color: #ffffff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
-      transition: transform 0.15s;
-    }
-
-    .race-exit-btn:active {
-      transform: scale(0.95);
-    }
   </style>
 </head>
 <body>
@@ -1130,34 +1040,18 @@
     </div>
   </div>
 
-  <!-- Racing Mode HUD Overlay -->
-  <div id="race-hud-overlay" class="race-hud-overlay">
-    <div class="race-top-bar">
-      <div class="race-card race-p1-card">
-        <div class="race-player-title">Player 1 (WASD)</div>
-        <div id="p1-lap-display" class="race-lap-counter">0 / 3 Laps</div>
-      </div>
-
-      <div class="race-status-center">
-        <div id="race-status-text" class="race-status-text">🏎️ 2-Player Race Active</div>
-        <div class="race-controls-hint">P1: W/A/S/D | P2: Arrows | Exit: Press Z</div>
-      </div>
-
-      <div class="race-card race-p2-card">
-        <div class="race-player-title">Player 2 (Arrows)</div>
-        <div id="p2-lap-display" class="race-lap-counter">0 / 3 Laps</div>
-      </div>
-    </div>
-
-    <button class="race-exit-btn" onclick="toggleRacingGame()">Exit Race (Z)</button>
-  </div>
-
   <!-- Mode Status Indicator (Clickable to Toggle Modes) -->
   <div id="mode-indicator" class="mode-indicator">Mode: Live GPS</div>
 
-  <!-- Touchscreen Joystick Container for Manual Mode -->
-  <div id="joystick-container" class="joystick-container">
-    <div id="joystick-thumb" class="joystick-thumb"></div>
+  <!-- Touchscreen Joysticks for Manual Mode -->
+  <div id="joystick-left" class="joystick-container left-joy">
+    <div class="joystick-label">Move</div>
+    <div id="joystick-thumb-left" class="joystick-thumb"></div>
+  </div>
+
+  <div id="joystick-right" class="joystick-container right-joy">
+    <div class="joystick-label">Rotate</div>
+    <div id="joystick-thumb-right" class="joystick-thumb"></div>
   </div>
 
   <!-- Side Panel Button -->
@@ -1253,14 +1147,13 @@
     const DEFAULT_CENTER = [101.736030, 2.975701];
     const INITIAL_ZOOM = 16.3;
     const DEFAULT_BEARING = -14;
-    const DEFAULT_PITCH = 45;
+    const DEFAULT_PITCH = 0; // Updated: Top-down default viewing angle
 
     const BOUNDING_BOX = [
       [101.733366, 2.972174], 
       [101.737937, 2.979556]  
     ];
 
-    // NEW START POSITION
     const START_COORDINATE = [101.7364682, 2.9763841];
     let currentUserCoords = [...START_COORDINATE];
 
@@ -1298,7 +1191,6 @@
     };
 
     // --- EMBEDDED ROUTE GEOJSON DATA SOURCES ---
-    // Source 1: LDC Route
     const ROUTE_LDC_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
@@ -1320,7 +1212,6 @@
       ]
     };
 
-    // Source 2: Block D Route
     const ROUTE_BLOCK_D_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
@@ -1341,7 +1232,6 @@
       ]
     };
 
-    // Source 3: Block C Route
     const ROUTE_BLOCK_C_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
@@ -1363,7 +1253,6 @@
       ]
     };
 
-    // Source 4: Block B Route
     const ROUTE_BLOCK_B_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
@@ -1386,7 +1275,6 @@
       ]
     };
 
-    // Source 5: Block A Route
     const ROUTE_BLOCK_A_GEOJSON = {
       "type": "FeatureCollection",
       "features": [
@@ -1542,35 +1430,52 @@
     let isFPVEnabled = false;
     let watchId = null;
 
-    let isRacingMode = false;
-    let p1Coords = [...START_COORDINATE];
-    let p1Heading = 220;
-    let p2Coords = [START_COORDINATE[0] + 0.0001, START_COORDINATE[1] - 0.0001];
-    let p2Heading = 220;
-
-    let p1Laps = 0;
-    let p2Laps = 0;
-    let p1PassedCheck = false;
-    let p2PassedCheck = false;
-
-    let p2Marker = null;
-
-    const RACE_START_LINE = [101.737179, 2.9765836];
-    const RACE_CHECKPOINT = [101.7360551, 2.97548];
-    const LAP_RADIUS_SQ = 0.00000002;
-
     const modeIndicator = document.getElementById('mode-indicator');
-    const joystickContainer = document.getElementById('joystick-container');
-    const joystickThumb = document.getElementById('joystick-thumb');
+    const joystickLeft = document.getElementById('joystick-left');
+    const joystickRight = document.getElementById('joystick-right');
+    const joystickThumbLeft = document.getElementById('joystick-thumb-left');
+    const joystickThumbRight = document.getElementById('joystick-thumb-right');
     const splashScreen = document.getElementById('splash-screen');
     const blockSelectModal = document.getElementById('block-select-modal');
     const legendsToggleBtn = document.getElementById('legends-toggle-btn');
     const legendsPopup = document.getElementById('legends-popup');
-    const raceHudOverlay = document.getElementById('race-hud-overlay');
-    const raceStatusText = document.getElementById('race-status-text');
 
     let dashOffset = 0;
     let dashAnimationId = null;
+
+    // --- DEVICE ORIENTATION COMPASS HEADING LISTENER ---
+    function handleDeviceOrientation(e) {
+      if (controlMode === 'gps') {
+        let heading = null;
+        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+          heading = e.webkitCompassHeading; // iOS Compass
+        } else if (e.alpha !== null) {
+          heading = 360 - e.alpha; // Android Compass fallback
+        }
+
+        if (heading !== null && !isNaN(heading)) {
+          userHeading = heading;
+          updateVisionConeOrientation();
+          if (isFPVEnabled) updateFPVCamera();
+        }
+      }
+    }
+
+    function initDeviceOrientation() {
+      if (window.DeviceOrientationEvent) {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission()
+            .then(state => {
+              if (state === 'granted') {
+                window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+              }
+            })
+            .catch(console.error);
+        } else {
+          window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+        }
+      }
+    }
 
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -1603,86 +1508,39 @@
     function chooseInitialBlock(blockKey) {
       blockSelectModal.classList.remove('open');
       selectLocation(blockKey);
+      initDeviceOrientation();
     }
 
     function toggleControlMode() {
-      if (isRacingMode) return;
       if (controlMode === 'gps') {
         controlMode = 'manual';
-        modeIndicator.textContent = 'Mode: Manual Controller (WASD / Joystick)';
+        modeIndicator.textContent = 'Mode: Manual Controller (Dual Joysticks / WASD)';
         modeIndicator.classList.add('manual');
-        joystickContainer.classList.add('active');
+        joystickLeft.classList.add('active');
+        joystickRight.classList.add('active');
       } else {
         controlMode = 'gps';
         modeIndicator.textContent = 'Mode: Live GPS';
         modeIndicator.classList.remove('manual');
-        joystickContainer.classList.remove('active');
+        joystickLeft.classList.remove('active');
+        joystickRight.classList.remove('active');
+        initDeviceOrientation();
       }
     }
 
     modeIndicator.addEventListener('click', toggleControlMode);
 
-    function toggleRacingGame() {
-      isRacingMode = !isRacingMode;
-
-      if (isRacingMode) {
-        controlMode = 'manual';
-        raceHudOverlay.classList.add('active');
-        modeIndicator.style.display = 'none';
-
-        p1Coords = [...START_COORDINATE];
-        p2Coords = [START_COORDINATE[0] + 0.0001, START_COORDINATE[1] - 0.0001];
-        p1Heading = 220;
-        p2Heading = 220;
-        p1Laps = 0;
-        p2Laps = 0;
-        p1PassedCheck = false;
-        p2PassedCheck = false;
-
-        document.getElementById('p1-lap-display').textContent = '0 / 3 Laps';
-        document.getElementById('p2-lap-display').textContent = '0 / 3 Laps';
-        raceStatusText.textContent = '🏎️ 2-Player Race Active';
-
-        const p2Container = document.createElement('div');
-        p2Container.className = 'user-marker-container';
-        const p2Dot = document.createElement('div');
-        p2Dot.className = 'p2-dot';
-        p2Container.appendChild(p2Dot);
-
-        if (p2Marker) p2Marker.remove();
-        p2Marker = new maplibregl.Marker({ element: p2Container })
-          .setLngLat(p2Coords)
-          .addTo(map);
-
-        userMarker.setLngLat(p1Coords);
-
-        map.flyTo({
-          center: RACE_START_LINE,
-          zoom: 17,
-          pitch: 50,
-          bearing: -20,
-          duration: 1200
-        });
-
-      } else {
-        raceHudOverlay.classList.remove('active');
-        modeIndicator.style.display = 'block';
-
-        if (p2Marker) {
-          p2Marker.remove();
-          p2Marker = null;
-        }
-
-        toggleControlMode();
-      }
-    }
-
-    let joystickActive = false;
-    let joystickVector = { x: 0, y: 0 };
+    // --- DUAL JOYSTICK CONTROL SYSTEM ---
     const JOYSTICK_RADIUS = 50;
 
-    function handleJoystickMove(clientX, clientY) {
-      const rect = joystickContainer.getBoundingClientRect();
+    let leftJoyActive = false;
+    let leftJoyVector = { x: 0, y: 0 };
+
+    let rightJoyActive = false;
+    let rightJoyVector = { x: 0, y: 0 };
+
+    function handleJoystickMove(container, thumb, clientX, clientY, vectorObj) {
+      const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
@@ -1695,32 +1553,55 @@
         dy = (dy / distance) * JOYSTICK_RADIUS;
       }
 
-      joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+      thumb.style.transform = `translate(${dx}px, ${dy}px)`;
 
-      joystickVector.x = dx / JOYSTICK_RADIUS;
-      joystickVector.y = dy / JOYSTICK_RADIUS;
+      vectorObj.x = dx / JOYSTICK_RADIUS;
+      vectorObj.y = dy / JOYSTICK_RADIUS;
     }
 
-    function resetJoystick() {
-      joystickActive = false;
-      joystickVector = { x: 0, y: 0 };
-      joystickThumb.style.transform = `translate(0px, 0px)`;
-    }
-
-    joystickContainer.addEventListener('pointerdown', (e) => {
-      joystickActive = true;
-      joystickContainer.setPointerCapture(e.pointerId);
-      handleJoystickMove(e.clientX, e.clientY);
+    // Left Joystick (Movement)
+    joystickLeft.addEventListener('pointerdown', (e) => {
+      leftJoyActive = true;
+      joystickLeft.setPointerCapture(e.pointerId);
+      handleJoystickMove(joystickLeft, joystickThumbLeft, e.clientX, e.clientY, leftJoyVector);
     });
 
-    joystickContainer.addEventListener('pointermove', (e) => {
-      if (joystickActive) {
-        handleJoystickMove(e.clientX, e.clientY);
+    joystickLeft.addEventListener('pointermove', (e) => {
+      if (leftJoyActive) {
+        handleJoystickMove(joystickLeft, joystickThumbLeft, e.clientX, e.clientY, leftJoyVector);
       }
     });
 
-    joystickContainer.addEventListener('pointerup', resetJoystick);
-    joystickContainer.addEventListener('pointercancel', resetJoystick);
+    function resetLeftJoystick() {
+      leftJoyActive = false;
+      leftJoyVector = { x: 0, y: 0 };
+      joystickThumbLeft.style.transform = `translate(0px, 0px)`;
+    }
+
+    joystickLeft.addEventListener('pointerup', resetLeftJoystick);
+    joystickLeft.addEventListener('pointercancel', resetLeftJoystick);
+
+    // Right Joystick (Rotation)
+    joystickRight.addEventListener('pointerdown', (e) => {
+      rightJoyActive = true;
+      joystickRight.setPointerCapture(e.pointerId);
+      handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
+    });
+
+    joystickRight.addEventListener('pointermove', (e) => {
+      if (rightJoyActive) {
+        handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
+      }
+    });
+
+    function resetRightJoystick() {
+      rightJoyActive = false;
+      rightJoyVector = { x: 0, y: 0 };
+      joystickThumbRight.style.transform = `translate(0px, 0px)`;
+    }
+
+    joystickRight.addEventListener('pointerup', resetRightJoystick);
+    joystickRight.addEventListener('pointercancel', resetRightJoystick);
 
     legendsToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1751,7 +1632,7 @@
         });
       }
 
-      // --- ADD CUSTOM 3D CUBOID BUILDING MODEL LAYER (HIDDEN INITIALLY) ---
+      // --- ADD CUSTOM 3D CUBOID BUILDING MODEL LAYER ---
       map.addSource('custom-cuboid-source', {
         type: 'geojson',
         data: CUBOID_3D_GEOJSON
@@ -2407,7 +2288,7 @@
       if ('geolocation' in navigator) {
         watchId = navigator.geolocation.watchPosition(
           (position) => {
-            if (controlMode === 'gps' && !isRacingMode) {
+            if (controlMode === 'gps') {
               const lng = position.coords.longitude;
               const lat = position.coords.latitude;
               
@@ -2444,10 +2325,163 @@
     const activeKeys = {};
     const CONTROL_KEYS = ['a', 'w', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
 
+    // --- HIDDEN PONG GAME ---
+    const pongOverlay = document.createElement('div');
+    pongOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.95);z-index:9999;display:none;';
+    const pongCanvas = document.createElement('canvas');
+    pongCanvas.style.cssText = 'display:block;width:100%;height:100%;';
+    pongOverlay.appendChild(pongCanvas);
+    document.body.appendChild(pongOverlay);
+
+    let pongCtx = pongCanvas.getContext('2d');
+    let pongActive = false;
+    let p1Y = 0, p2Y = 0, bX = 0, bY = 0, bVX = 0, bVY = 0;
+    let s1 = 0, s2 = 0, pFlash1 = 0, pFlash2 = 0;
+    let pW = 15, pH = 100;
+    let particles = [];
+    let goalMsg = { text: '', alpha: 0 };
+
+    class Particle {
+      constructor(x, y, color, speed) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random() - 0.5) * speed;
+        this.vy = (Math.random() - 0.5) * speed;
+        this.life = 1.0;
+        this.color = color;
+        this.size = Math.random() * 4 + 2;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy; this.life -= 0.03;
+      }
+      draw(ctx) {
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    function createParticles(x, y, color, amount, speed) {
+      for(let i=0; i<amount; i++) particles.push(new Particle(x, y, color, speed));
+    }
+
+    function resetPongBall() {
+      bX = pongCanvas.width / 2; bY = pongCanvas.height / 2;
+      bVX = (Math.random() > 0.5 ? 1 : -1) * 7;
+      bVY = (Math.random() - 0.5) * 8;
+    }
+
+    function togglePong() {
+      pongActive = !pongActive;
+      if (pongActive) {
+        pongOverlay.style.display = 'block';
+        pongCanvas.width = window.innerWidth;
+        pongCanvas.height = window.innerHeight;
+        p1Y = pongCanvas.height / 2 - pH / 2;
+        p2Y = pongCanvas.height / 2 - pH / 2;
+        s1 = 0; s2 = 0;
+        particles = [];
+        resetPongBall();
+        pongLoop();
+      } else {
+        pongOverlay.style.display = 'none';
+      }
+    }
+
+    function pongLoop() {
+      if (!pongActive) return;
+
+      pongCtx.clearRect(0, 0, pongCanvas.width, pongCanvas.height);
+
+      if (activeKeys['w']) p1Y -= 8;
+      if (activeKeys['s']) p1Y += 8;
+      if (activeKeys['arrowup']) p2Y -= 8;
+      if (activeKeys['arrowdown']) p2Y += 8;
+
+      p1Y = Math.max(0, Math.min(pongCanvas.height - pH, p1Y));
+      p2Y = Math.max(0, Math.min(pongCanvas.height - pH, p2Y));
+
+      bX += bVX; bY += bVY;
+
+      // Wall bounce
+      if (bY <= 0 || bY >= pongCanvas.height) {
+        bVY = -bVY;
+        createParticles(bX, bY, '#94a3b8', 5, 5);
+      }
+
+      // Paddle bounce
+      if (bX <= 40 + pW && bY >= p1Y && bY <= p1Y + pH && bVX < 0) {
+        bVX = -bVX * 1.1; bVY += (bY - (p1Y + pH/2)) * 0.1; pFlash1 = 1;
+        createParticles(40 + pW, bY, '#e11d48', 15, 10);
+      }
+      if (bX >= pongCanvas.width - 40 - pW && bY >= p2Y && bY <= p2Y + pH && bVX > 0) {
+        bVX = -bVX * 1.1; bVY += (bY - (p2Y + pH/2)) * 0.1; pFlash2 = 1;
+        createParticles(pongCanvas.width - 40 - pW, bY, '#38bdf8', 15, 10);
+      }
+
+      // Scoring
+      if (bX < 0) {
+        s2++; goalMsg = { text: 'P2 GOAL!', alpha: 1 };
+        createParticles(0, bY, '#38bdf8', 50, 15);
+        resetPongBall();
+      } else if (bX > pongCanvas.width) {
+        s1++; goalMsg = { text: 'P1 GOAL!', alpha: 1 };
+        createParticles(pongCanvas.width, bY, '#e11d48', 50, 15);
+        resetPongBall();
+      }
+
+      // Draw Paddles
+      pongCtx.fillStyle = pFlash1 > 0 ? '#ffffff' : '#e11d48'; pFlash1 -= 0.05;
+      pongCtx.fillRect(40, p1Y, pW, pH);
+      pongCtx.fillStyle = pFlash2 > 0 ? '#ffffff' : '#38bdf8'; pFlash2 -= 0.05;
+      pongCtx.fillRect(pongCanvas.width - 40 - pW, p2Y, pW, pH);
+
+      // Draw Ball
+      pongCtx.fillStyle = '#ffffff';
+      pongCtx.beginPath(); pongCtx.arc(bX, bY, 8, 0, Math.PI * 2); pongCtx.fill();
+
+      // Draw Scores & Center line
+      pongCtx.fillStyle = 'rgba(255,255,255,0.2)';
+      for(let i=0; i<pongCanvas.height; i+=40) pongCtx.fillRect(pongCanvas.width/2 - 2, i, 4, 20);
+      pongCtx.font = 'bold 64px sans-serif'; pongCtx.textAlign = 'center';
+      pongCtx.fillStyle = 'rgba(255,255,255,0.3)';
+      pongCtx.fillText(s1, pongCanvas.width/2 - 100, 80);
+      pongCtx.fillText(s2, pongCanvas.width/2 + 100, 80);
+
+      // Draw Particles
+      for(let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update(); particles[i].draw(pongCtx);
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+
+      // Draw Goal Msg
+      if (goalMsg.alpha > 0) {
+        pongCtx.globalAlpha = goalMsg.alpha;
+        pongCtx.fillStyle = '#ffffff';
+        pongCtx.font = '900 80px sans-serif';
+        pongCtx.fillText(goalMsg.text, pongCanvas.width/2, pongCanvas.height/2);
+        pongCtx.globalAlpha = 1.0;
+        goalMsg.alpha -= 0.02;
+      }
+
+      requestAnimationFrame(pongLoop);
+    }
+    window.addEventListener('resize', () => {
+      if(pongActive) { pongCanvas.width = window.innerWidth; pongCanvas.height = window.innerHeight; }
+    });
+    // --- END HIDDEN PONG GAME ---
+
+
     window.addEventListener('keydown', (e) => {
       if (document.activeElement === searchInput || imageModal.classList.contains('open') || blockSelectModal.classList.contains('open')) return;
       
       const key = e.key.toLowerCase();
+
+      if (key === 'z') {
+        e.preventDefault();
+        togglePong();
+        return;
+      }
 
       if (key === 't') {
         e.preventDefault();
@@ -2460,19 +2494,13 @@
         return;
       }
 
-      if (key === 'z') {
-        e.preventDefault();
-        toggleRacingGame();
-        return;
-      }
-
-      if (key === 'p' && !isRacingMode) {
+      if (key === 'p') {
         e.preventDefault();
         toggleControlMode();
         return;
       }
 
-      if (controlMode === 'manual' && TELEPORT_COORDINATES[key] && !isRacingMode) {
+      if (controlMode === 'manual' && TELEPORT_COORDINATES[key]) {
         e.preventDefault();
         currentUserCoords = [...TELEPORT_COORDINATES[key]];
         userMarker.setLngLat(currentUserCoords);
@@ -2484,6 +2512,9 @@
       }
 
       if (controlMode === 'manual' && CONTROL_KEYS.includes(key)) {
+        if(!pongActive) e.preventDefault(); // Don't prevent default in pong to avoid breaking stuff if needed, but we probably should
+        activeKeys[key] = true;
+      } else if (pongActive && CONTROL_KEYS.includes(key)) {
         e.preventDefault();
         activeKeys[key] = true;
       }
@@ -2497,71 +2528,12 @@
     });
 
     function handleMovementLoop() {
-      if (isRacingMode) {
-        if (activeKeys['a']) p1Heading = (p1Heading - ROTATE_STEP + 360) % 360;
-        if (activeKeys['d']) p1Heading = (p1Heading + ROTATE_STEP) % 360;
-
-        if (activeKeys['w']) {
-          const rad = p1Heading * (Math.PI / 180);
-          p1Coords[0] += Math.sin(rad) * MOVE_STEP;
-          p1Coords[1] += Math.cos(rad) * MOVE_STEP;
-        }
-        if (activeKeys['s']) {
-          const rad = p1Heading * (Math.PI / 180);
-          p1Coords[0] -= Math.sin(rad) * MOVE_STEP;
-          p1Coords[1] -= Math.cos(rad) * MOVE_STEP;
-        }
-
-        if (activeKeys['arrowleft']) p2Heading = (p2Heading - ROTATE_STEP + 360) % 360;
-        if (activeKeys['arrowright']) p2Heading = (p2Heading + ROTATE_STEP) % 360;
-
-        if (activeKeys['arrowup']) {
-          const rad = p2Heading * (Math.PI / 180);
-          p2Coords[0] += Math.sin(rad) * MOVE_STEP;
-          p2Coords[1] += Math.cos(rad) * MOVE_STEP;
-        }
-        if (activeKeys['arrowdown']) {
-          const rad = p2Heading * (Math.PI / 180);
-          p2Coords[0] -= Math.sin(rad) * MOVE_STEP;
-          p2Coords[1] -= Math.cos(rad) * MOVE_STEP;
-        }
-
-        userMarker.setLngLat(p1Coords);
-        if (p2Marker) p2Marker.setLngLat(p2Coords);
-
-        if (calculateDistanceSq(p1Coords, RACE_CHECKPOINT) < LAP_RADIUS_SQ) p1PassedCheck = true;
-        if (p1PassedCheck && calculateDistanceSq(p1Coords, RACE_START_LINE) < LAP_RADIUS_SQ) {
-          p1Laps++;
-          p1PassedCheck = false;
-          document.getElementById('p1-lap-display').textContent = `${p1Laps} / 3 Laps`;
-        }
-
-        if (calculateDistanceSq(p2Coords, RACE_CHECKPOINT) < LAP_RADIUS_SQ) p2PassedCheck = true;
-        if (p2PassedCheck && calculateDistanceSq(p2Coords, RACE_START_LINE) < LAP_RADIUS_SQ) {
-          p2Laps++;
-          p2PassedCheck = false;
-          document.getElementById('p2-lap-display').textContent = `${p2Laps} / 3 Laps`;
-        }
-
-        if (p1Laps >= 3) {
-          raceStatusText.textContent = '🏆 PLAYER 1 WINS!';
-        } else if (p2Laps >= 3) {
-          raceStatusText.textContent = '🏆 PLAYER 2 WINS!';
-        }
-
-      } else if (controlMode === 'manual') {
+      if (controlMode === 'manual' && !pongActive) {
         let moved = false;
 
-        if (joystickActive && (Math.abs(joystickVector.x) > 0.1 || Math.abs(joystickVector.y) > 0.1)) {
-          const inputAngle = Math.atan2(joystickVector.x, -joystickVector.y);
-          const movementDirectionDeg = (userHeading + (inputAngle * (180 / Math.PI)) + 360) % 360;
-          const movementRad = movementDirectionDeg * (Math.PI / 180);
-          
-          const speedFactor = Math.hypot(joystickVector.x, joystickVector.y);
-          const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
-
-          currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
-          currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
+        // --- RIGHT JOYSTICK OR KEYBOARD ROTATION ---
+        if (rightJoyActive && Math.abs(rightJoyVector.x) > 0.1) {
+          userHeading = (userHeading + (rightJoyVector.x * ROTATE_STEP) + 360) % 360;
           moved = true;
         }
 
@@ -2575,6 +2547,21 @@
           moved = true;
         }
 
+        // --- LEFT JOYSTICK MOVEMENT ---
+        if (leftJoyActive && (Math.abs(leftJoyVector.x) > 0.1 || Math.abs(leftJoyVector.y) > 0.1)) {
+          const inputAngle = Math.atan2(leftJoyVector.x, -leftJoyVector.y);
+          const movementDirectionDeg = (userHeading + (inputAngle * (180 / Math.PI)) + 360) % 360;
+          const movementRad = movementDirectionDeg * (Math.PI / 180);
+          
+          const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
+          const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
+
+          currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
+          currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
+          moved = true;
+        }
+
+        // --- KEYBOARD TRANSLATION ---
         let nextLng = currentUserCoords[0];
         let nextLat = currentUserCoords[1];
 
@@ -2593,8 +2580,8 @@
         }
 
         if (moved) {
-          currentUserCoords[0] = Math.max(BOUNDING_BOX[0][0], Math.min(BOUNDING_BOX[1][0], joystickActive ? currentUserCoords[0] : nextLng));
-          currentUserCoords[1] = Math.max(BOUNDING_BOX[0][1], Math.min(BOUNDING_BOX[1][1], joystickActive ? currentUserCoords[1] : nextLat));
+          currentUserCoords[0] = Math.max(BOUNDING_BOX[0][0], Math.min(BOUNDING_BOX[1][0], leftJoyActive ? currentUserCoords[0] : nextLng));
+          currentUserCoords[1] = Math.max(BOUNDING_BOX[0][1], Math.min(BOUNDING_BOX[1][1], leftJoyActive ? currentUserCoords[1] : nextLat));
 
           userMarker.setLngLat(currentUserCoords);
           updateVisionConeOrientation();
