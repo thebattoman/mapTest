@@ -327,10 +327,11 @@
       border-bottom-color: #1e3a8a;
     }
 
-    /* --- DUAL JOYSTICKS (MANUAL MODE) --- */
+    /* --- SINGLE JOYSTICK (MANUAL MODE) --- */
     .joystick-container {
       position: absolute;
       bottom: 160px;
+      left: 30px;
       width: 100px;
       height: 100px;
       background: rgba(255, 255, 255, 0.25);
@@ -345,14 +346,6 @@
 
     .joystick-container.active {
       display: block;
-    }
-
-    .joystick-container.left-joy {
-      left: 30px;
-    }
-
-    .joystick-container.right-joy {
-      right: 30px;
     }
 
     .joystick-thumb {
@@ -1043,15 +1036,10 @@
   <!-- Mode Status Indicator (Clickable to Toggle Modes) -->
   <div id="mode-indicator" class="mode-indicator">Mode: Live GPS</div>
 
-  <!-- Touchscreen Joysticks for Manual Mode -->
-  <div id="joystick-left" class="joystick-container left-joy">
+  <!-- Single Joystick for Manual Mode -->
+  <div id="joystick-left" class="joystick-container">
     <div class="joystick-label">Move</div>
     <div id="joystick-thumb-left" class="joystick-thumb"></div>
-  </div>
-
-  <div id="joystick-right" class="joystick-container right-joy">
-    <div class="joystick-label">Rotate</div>
-    <div id="joystick-thumb-right" class="joystick-thumb"></div>
   </div>
 
   <!-- Side Panel Button -->
@@ -1147,7 +1135,7 @@
     const DEFAULT_CENTER = [101.736030, 2.975701];
     const INITIAL_ZOOM = 16.3;
     const DEFAULT_BEARING = -14;
-    const DEFAULT_PITCH = 0; // Updated: Top-down default viewing angle
+    const DEFAULT_PITCH = 0; // Top-down viewing angle
 
     const BOUNDING_BOX = [
       [101.733366, 2.972174], 
@@ -1432,9 +1420,7 @@
 
     const modeIndicator = document.getElementById('mode-indicator');
     const joystickLeft = document.getElementById('joystick-left');
-    const joystickRight = document.getElementById('joystick-right');
     const joystickThumbLeft = document.getElementById('joystick-thumb-left');
-    const joystickThumbRight = document.getElementById('joystick-thumb-right');
     const splashScreen = document.getElementById('splash-screen');
     const blockSelectModal = document.getElementById('block-select-modal');
     const legendsToggleBtn = document.getElementById('legends-toggle-btn');
@@ -1514,30 +1500,24 @@
     function toggleControlMode() {
       if (controlMode === 'gps') {
         controlMode = 'manual';
-        modeIndicator.textContent = 'Mode: Manual Controller (Dual Joysticks / WASD)';
+        modeIndicator.textContent = 'Mode: Manual Controller (Joystick / WASD)';
         modeIndicator.classList.add('manual');
         joystickLeft.classList.add('active');
-        joystickRight.classList.add('active');
       } else {
         controlMode = 'gps';
         modeIndicator.textContent = 'Mode: Live GPS';
         modeIndicator.classList.remove('manual');
         joystickLeft.classList.remove('active');
-        joystickRight.classList.remove('active');
         initDeviceOrientation();
       }
     }
 
     modeIndicator.addEventListener('click', toggleControlMode);
 
-    // --- DUAL JOYSTICK CONTROL SYSTEM ---
+    // --- JOYSTICK CONTROL SYSTEM ---
     const JOYSTICK_RADIUS = 50;
-
     let leftJoyActive = false;
     let leftJoyVector = { x: 0, y: 0 };
-
-    let rightJoyActive = false;
-    let rightJoyVector = { x: 0, y: 0 };
 
     function handleJoystickMove(container, thumb, clientX, clientY, vectorObj) {
       const rect = container.getBoundingClientRect();
@@ -1559,7 +1539,6 @@
       vectorObj.y = dy / JOYSTICK_RADIUS;
     }
 
-    // Left Joystick (Movement)
     joystickLeft.addEventListener('pointerdown', (e) => {
       leftJoyActive = true;
       joystickLeft.setPointerCapture(e.pointerId);
@@ -1580,28 +1559,6 @@
 
     joystickLeft.addEventListener('pointerup', resetLeftJoystick);
     joystickLeft.addEventListener('pointercancel', resetLeftJoystick);
-
-    // Right Joystick (Rotation)
-    joystickRight.addEventListener('pointerdown', (e) => {
-      rightJoyActive = true;
-      joystickRight.setPointerCapture(e.pointerId);
-      handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
-    });
-
-    joystickRight.addEventListener('pointermove', (e) => {
-      if (rightJoyActive) {
-        handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
-      }
-    });
-
-    function resetRightJoystick() {
-      rightJoyActive = false;
-      rightJoyVector = { x: 0, y: 0 };
-      joystickThumbRight.style.transform = `translate(0px, 0px)`;
-    }
-
-    joystickRight.addEventListener('pointerup', resetRightJoystick);
-    joystickRight.addEventListener('pointercancel', resetRightJoystick);
 
     legendsToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2471,7 +2428,6 @@
     });
     // --- END HIDDEN PONG GAME ---
 
-
     window.addEventListener('keydown', (e) => {
       if (document.activeElement === searchInput || imageModal.classList.contains('open') || blockSelectModal.classList.contains('open')) return;
       
@@ -2512,7 +2468,7 @@
       }
 
       if (controlMode === 'manual' && CONTROL_KEYS.includes(key)) {
-        if(!pongActive) e.preventDefault(); // Don't prevent default in pong to avoid breaking stuff if needed, but we probably should
+        if(!pongActive) e.preventDefault();
         activeKeys[key] = true;
       } else if (pongActive && CONTROL_KEYS.includes(key)) {
         e.preventDefault();
@@ -2531,12 +2487,7 @@
       if (controlMode === 'manual' && !pongActive) {
         let moved = false;
 
-        // --- RIGHT JOYSTICK OR KEYBOARD ROTATION ---
-        if (rightJoyActive && Math.abs(rightJoyVector.x) > 0.1) {
-          userHeading = (userHeading + (rightJoyVector.x * ROTATE_STEP) + 360) % 360;
-          moved = true;
-        }
-
+        // --- KEYBOARD ROTATION ---
         if (activeKeys['a'] || activeKeys['arrowleft']) {
           userHeading = (userHeading - ROTATE_STEP + 360) % 360;
           moved = true;
@@ -2547,15 +2498,18 @@
           moved = true;
         }
 
-        // --- LEFT JOYSTICK MOVEMENT ---
+        // --- JOYSTICK MOVEMENT ---
         if (leftJoyActive && (Math.abs(leftJoyVector.x) > 0.1 || Math.abs(leftJoyVector.y) > 0.1)) {
           const inputAngle = Math.atan2(leftJoyVector.x, -leftJoyVector.y);
-          const movementDirectionDeg = (userHeading + (inputAngle * (180 / Math.PI)) + 360) % 360;
-          const movementRad = movementDirectionDeg * (Math.PI / 180);
+          const inputAngleDeg = inputAngle * (180 / Math.PI);
           
+          // Set heading to joystick input angle relative to screen top
+          userHeading = (inputAngleDeg + 360) % 360;
+
           const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
           const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
 
+          const movementRad = userHeading * (Math.PI / 180);
           currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
           currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
           moved = true;
@@ -2584,13 +2538,17 @@
           currentUserCoords[1] = Math.max(BOUNDING_BOX[0][1], Math.min(BOUNDING_BOX[1][1], leftJoyActive ? currentUserCoords[1] : nextLat));
 
           userMarker.setLngLat(currentUserCoords);
+
+          // Update camera bearing to follow user orientation
+          if (!isFPVEnabled) {
+            map.setBearing(userHeading);
+          } else {
+            updateFPVCamera();
+          }
+
           updateVisionConeOrientation();
           updateStraightLine();
           updateNearestEntryMarker();
-
-          if (isFPVEnabled) {
-            updateFPVCamera();
-          }
         }
       }
 
