@@ -441,62 +441,91 @@
       border-left: 3px solid #e11d48 !important;
     }
 
-    /* --- PULL-UP DRAWER (BOTTOM) --- */
-    .pull-up-drawer {
+    /* --- GALLERY BOTTOM-LEFT TOGGLE ICON --- */
+    .gallery-toggle-btn {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
-      box-shadow: 0 -8px 30px rgba(30, 58, 138, 0.2);
+      bottom: 24px;
+      left: 20px;
       z-index: 20;
-      transform: translateY(100%);
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 12px 20px 24px 20px;
-      box-sizing: border-box;
-      max-height: 48vh;
+      width: 48px;
+      height: 48px;
+      background: #1e3a8a;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 6px 18px rgba(30, 58, 138, 0.35);
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      border-top: 4px solid #e11d48;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .pull-up-drawer.open {
-      transform: translateY(0);
+    .gallery-toggle-btn:hover {
+      background: #e11d48;
+      transform: scale(1.08);
+      box-shadow: 0 8px 22px rgba(225, 29, 72, 0.45);
     }
 
-    .drawer-handle-bar {
-      width: 44px;
-      height: 5px;
-      background-color: #cbd5e1;
-      border-radius: 3px;
-      margin: 0 auto 12px auto;
-      cursor: grab;
+    .gallery-toggle-btn:active {
+      transform: scale(0.95);
     }
 
-    .drawer-header {
+    .gallery-toggle-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    /* --- POPUP GALLERY PANEL (BOTTOM-LEFT) --- */
+    .gallery-panel {
+      position: absolute;
+      bottom: 84px;
+      left: 20px;
+      width: 320px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 12px 36px rgba(30, 58, 138, 0.25);
+      z-index: 20;
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 16px;
+      box-sizing: border-box;
+      border: 1.5px solid #e2e8f0;
+      border-left: 5px solid #e11d48;
+    }
+
+    .gallery-panel.open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .gallery-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
-    .drawer-title {
-      font-size: 17px;
+    .gallery-title {
+      font-size: 15px;
       font-weight: 800;
       color: #1e3a8a;
       margin: 0;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.2px;
     }
 
-    .drawer-close-btn {
+    .gallery-close-btn {
       background: #f1f5f9;
       border: none;
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      font-size: 18px;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
       font-weight: 700;
       color: #1e3a8a;
       cursor: pointer;
@@ -507,33 +536,33 @@
       transition: background 0.2s, color 0.2s;
     }
 
-    .drawer-close-btn:hover {
+    .gallery-close-btn:hover {
       background: #e11d48;
       color: #ffffff;
     }
 
     .gallery-container {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       overflow-x: auto;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
 
     .gallery-container::-webkit-scrollbar {
-      height: 6px;
+      height: 5px;
     }
 
     .gallery-container::-webkit-scrollbar-thumb {
-      background: #94a3b8;
+      background: #cbd5e1;
       border-radius: 3px;
     }
 
     .gallery-card {
       flex: 0 0 auto;
-      width: 170px;
-      height: 115px;
+      width: 140px;
+      height: 95px;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
@@ -563,9 +592,9 @@
       right: 0;
       background: linear-gradient(transparent, rgba(30, 58, 138, 0.85));
       color: #ffffff;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 14px 8px 6px 8px;
+      padding: 12px 6px 4px 6px;
       letter-spacing: 0.3px;
     }
 
@@ -1102,12 +1131,18 @@
     <input type="range" id="bearing-slider" class="bearing-slider" min="-180" max="180" value="-14" />
   </div>
 
-  <!-- Pull-Up Drawer for Image Gallery -->
-  <div id="pull-up-drawer" class="pull-up-drawer">
-    <div class="drawer-handle-bar"></div>
-    <div class="drawer-header">
-      <h3 id="drawer-title" class="drawer-title">Location Gallery</h3>
-      <button id="drawer-close-btn" class="drawer-close-btn">&times;</button>
+  <!-- Gallery Toggle Button (Bottom-Left Corner) -->
+  <button id="gallery-toggle-btn" class="gallery-toggle-btn" title="Location Gallery">
+    <svg viewBox="0 0 24 24">
+      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+    </svg>
+  </button>
+
+  <!-- Gallery Popup Panel (Bottom-Left) -->
+  <div id="gallery-panel" class="gallery-panel">
+    <div class="gallery-header">
+      <h3 id="gallery-title" class="gallery-title">Location Gallery</h3>
+      <button id="gallery-close-btn" class="gallery-close-btn">&times;</button>
     </div>
     <div id="gallery-container" class="gallery-container"></div>
   </div>
@@ -1481,6 +1516,7 @@
             updateVisionConeOrientation();
             updateStraightLine();
             updateNearestEntryMarker();
+            updateActiveRouteLine();
             if (isFPVEnabled) updateFPVCamera();
           }
         },
@@ -1830,16 +1866,18 @@
       }, true);
     }
 
-    const pullUpDrawer = document.getElementById('pull-up-drawer');
-    const drawerTitle = document.getElementById('drawer-title');
+    // --- GALLERY POPUP PANEL LOGIC ---
+    const galleryToggleBtn = document.getElementById('gallery-toggle-btn');
+    const galleryPanel = document.getElementById('gallery-panel');
+    const galleryTitle = document.getElementById('gallery-title');
     const galleryContainer = document.getElementById('gallery-container');
-    const drawerCloseBtn = document.getElementById('drawer-close-btn');
+    const galleryCloseBtn = document.getElementById('gallery-close-btn');
 
-    function openGalleryDrawer(locationKey) {
+    function renderGalleryContent(locationKey) {
       const location = BLOCKS[locationKey];
       if (!location) return;
 
-      drawerTitle.textContent = `${location.name} Gallery`;
+      galleryTitle.textContent = `${location.name} Gallery`;
       galleryContainer.innerHTML = '';
 
       if (location.images && location.images.length > 0) {
@@ -1854,17 +1892,25 @@
           galleryContainer.appendChild(card);
         });
       } else {
-        galleryContainer.innerHTML = `<div style="font-size: 13px; color: #64748b; padding: 10px 0; font-weight: 600;">No preview images available.</div>`;
+        galleryContainer.innerHTML = `<div style="font-size: 12px; color: #64748b; padding: 8px 0; font-weight: 600;">No preview images available.</div>`;
       }
-
-      pullUpDrawer.classList.add('open');
     }
 
-    function closeGalleryDrawer() {
-      pullUpDrawer.classList.remove('open');
+    function toggleGalleryPanel() {
+      if (!selectedLocationKey) return;
+      galleryPanel.classList.toggle('open');
     }
 
-    drawerCloseBtn.addEventListener('click', closeGalleryDrawer);
+    function closeGalleryPanel() {
+      galleryPanel.classList.remove('open');
+    }
+
+    galleryToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleGalleryPanel();
+    });
+
+    galleryCloseBtn.addEventListener('click', closeGalleryPanel);
 
     const imageModal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-img');
@@ -2089,6 +2135,52 @@
       });
     }
 
+    // --- DYNAMIC FADING ROUTE LINE (Trims passed route points) ---
+    function updateActiveRouteLine() {
+      if (!selectedLocationKey) return;
+      const activeRouteSource = map.getSource('active-block-route-source');
+      const targetBlock = BLOCKS[selectedLocationKey];
+
+      if (activeRouteSource && targetBlock && targetBlock.route) {
+        const fullRoute = targetBlock.route.features[1]?.geometry?.coordinates;
+        if (!fullRoute || fullRoute.length === 0) return;
+
+        let closestSegmentIndex = 0;
+        let closestPointOnSegment = fullRoute[0];
+        let minDistanceSq = Infinity;
+
+        for (let i = 0; i < fullRoute.length - 1; i++) {
+          const projected = getClosestPointOnSegment(currentUserCoords, fullRoute[i], fullRoute[i + 1]);
+          const distSq = calculateDistanceSq(currentUserCoords, projected);
+          if (distSq < minDistanceSq) {
+            minDistanceSq = distSq;
+            closestSegmentIndex = i;
+            closestPointOnSegment = projected;
+          }
+        }
+
+        const remainingCoords = [
+          closestPointOnSegment,
+          ...fullRoute.slice(closestSegmentIndex + 1)
+        ];
+
+        activeRouteSource.setData({
+          type: 'FeatureCollection',
+          features: [
+            { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
+            {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'LineString',
+                coordinates: remainingCoords
+              }
+            }
+          ]
+        });
+      }
+    }
+
     function selectLocation(selectedKey) {
       const targetBlock = BLOCKS[selectedKey];
 
@@ -2112,21 +2204,11 @@
           }
         }
 
-        const activeRouteSource = map.getSource('active-block-route-source');
-        if (activeRouteSource) {
-          if (targetBlock.route) {
-            activeRouteSource.setData(targetBlock.route);
-          } else {
-            activeRouteSource.setData({
-              type: 'FeatureCollection',
-              features: []
-            });
-          }
-        }
-
+        updateActiveRouteLine();
         updateStraightLine();
         updateNearestEntryMarker();
-        openGalleryDrawer(selectedKey);
+        renderGalleryContent(selectedKey);
+        closeGalleryPanel();
       }
     }
 
@@ -2263,6 +2345,7 @@
               updateVisionConeOrientation();
               updateStraightLine();
               updateNearestEntryMarker();
+              updateActiveRouteLine();
 
               if (isFPVEnabled) {
                 updateFPVCamera();
@@ -2450,6 +2533,7 @@
         updateVisionConeOrientation();
         updateStraightLine();
         updateNearestEntryMarker();
+        updateActiveRouteLine();
         if (isFPVEnabled) updateFPVCamera();
         return;
       }
@@ -2467,6 +2551,7 @@
         updateVisionConeOrientation();
         updateStraightLine();
         updateNearestEntryMarker();
+        updateActiveRouteLine();
         if (isFPVEnabled) updateFPVCamera();
         return;
       }
@@ -2502,18 +2587,28 @@
           moved = true;
         }
 
-        // --- LEFT JOYSTICK MOVEMENT & HEADING UPDATE ---
+        // --- LEFT JOYSTICK MOVEMENT ---
         if (leftJoyActive && (Math.abs(leftJoyVector.x) > 0.1 || Math.abs(leftJoyVector.y) > 0.1)) {
-          // Calculate heading angle from Joystick tilt
-          const joyAngleDeg = (Math.atan2(leftJoyVector.x, -leftJoyVector.y) * (180 / Math.PI) + 360) % 360;
-          userHeading = joyAngleDeg;
+          const inputAngleRad = Math.atan2(leftJoyVector.x, -leftJoyVector.y);
 
-          const movementRad = userHeading * (Math.PI / 180);
-          const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
-          const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
+          if (isFPVEnabled) {
+            const moveAngleRad = userHeading * (Math.PI / 180) + inputAngleRad;
+            const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
+            const reducedSpeed = (MOVE_STEP * 0.35) * Math.min(1, speedFactor);
 
-          currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
-          currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
+            currentUserCoords[0] += Math.sin(moveAngleRad) * reducedSpeed;
+            currentUserCoords[1] += Math.cos(moveAngleRad) * reducedSpeed;
+          } else {
+            const joyAngleDeg = (inputAngleRad * (180 / Math.PI) + 360) % 360;
+            userHeading = joyAngleDeg;
+
+            const movementRad = userHeading * (Math.PI / 180);
+            const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
+            const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
+
+            currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
+            currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
+          }
           moved = true;
         }
 
@@ -2523,15 +2618,17 @@
 
         if (activeKeys['w'] || activeKeys['arrowup']) {
           const rad = userHeading * (Math.PI / 180);
-          nextLng += Math.sin(rad) * MOVE_STEP;
-          nextLat += Math.cos(rad) * MOVE_STEP;
+          const step = isFPVEnabled ? MOVE_STEP * 0.35 : MOVE_STEP;
+          nextLng += Math.sin(rad) * step;
+          nextLat += Math.cos(rad) * step;
           moved = true;
         }
 
         if (activeKeys['s'] || activeKeys['arrowdown']) {
           const rad = userHeading * (Math.PI / 180);
-          nextLng -= Math.sin(rad) * MOVE_STEP;
-          nextLat -= Math.cos(rad) * MOVE_STEP;
+          const step = isFPVEnabled ? MOVE_STEP * 0.35 : MOVE_STEP;
+          nextLng -= Math.sin(rad) * step;
+          nextLat -= Math.cos(rad) * step;
           moved = true;
         }
 
@@ -2543,6 +2640,7 @@
           updateVisionConeOrientation();
           updateStraightLine();
           updateNearestEntryMarker();
+          updateActiveRouteLine();
 
           if (isFPVEnabled) {
             updateFPVCamera();
