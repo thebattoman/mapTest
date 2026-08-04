@@ -296,7 +296,7 @@
     /* --- MODE STATUS BADGE --- */
     .mode-indicator {
       position: absolute;
-      bottom: 110px;
+      bottom: 150px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
@@ -330,7 +330,7 @@
     /* --- SINGLE LEFT JOYSTICK (MANUAL MODE) --- */
     .joystick-container {
       position: absolute;
-      bottom: 160px;
+      bottom: 180px;
       left: 30px;
       width: 100px;
       height: 100px;
@@ -382,26 +382,42 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    /* --- RADIAL BEARING SLIDER --- */
-    .bearing-control-container {
+    /* --- SLIDERS CONTAINER --- */
+    .controls-sliders-container {
       position: absolute;
-      bottom: 60px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
       padding: 8px 16px;
-      border-radius: 30px;
+      border-radius: 20px;
       box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2);
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 6px;
       border: 1px solid #e2e8f0;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #1e3a8a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: 80px;
     }
 
     .bearing-slider {
       -webkit-appearance: none;
-      width: 150px;
+      width: 140px;
       height: 6px;
       border-radius: 3px;
       background: #e2e8f0;
@@ -428,15 +444,15 @@
       box-shadow: 0 2px 6px rgba(225, 29, 72, 0.4);
     }
 
-    /* --- CUSTOM MAP CONTROLS (FPV) --- */
-    .fpv-btn {
-      background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%231e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>');
+    /* --- CUSTOM MAP CONTROLS (TOP DOWN VIEW TOGGLE) --- */
+    .topdown-btn {
+      background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%231e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>');
       background-repeat: no-repeat;
       background-position: center;
       background-size: 18px;
     }
 
-    .fpv-btn.active {
+    .topdown-btn.active {
       background-color: #eff6ff;
       border-left: 3px solid #e11d48 !important;
     }
@@ -1126,9 +1142,16 @@
     </div>
   </div>
 
-  <!-- Radial Bearing Slider -->
-  <div class="bearing-control-container">
-    <input type="range" id="bearing-slider" class="bearing-slider" min="-180" max="180" value="-14" />
+  <!-- Sliders Container -->
+  <div class="controls-sliders-container">
+    <div class="slider-row">
+      <span class="slider-label">Camera</span>
+      <input type="range" id="bearing-slider" class="bearing-slider" min="-180" max="180" value="220" />
+    </div>
+    <div id="marker-heading-row" class="slider-row" style="display: none;">
+      <span class="slider-label">Marker Angle</span>
+      <input type="range" id="heading-slider" class="bearing-slider" min="0" max="360" value="220" />
+    </div>
   </div>
 
   <!-- Gallery Toggle Button (Bottom-Left Corner) -->
@@ -1168,9 +1191,9 @@
 
   <script>
     const DEFAULT_CENTER = [101.736030, 2.975701];
-    const INITIAL_ZOOM = 16.3;
-    const DEFAULT_BEARING = -14;
-    const DEFAULT_PITCH = 0; // Top-down viewing angle
+    const INITIAL_ZOOM = 19.5;
+    const DEFAULT_BEARING = 220;
+    const DEFAULT_PITCH = 80; // Default First-Person View Angle
 
     const BOUNDING_BOX = [
       [101.733366, 2.972174], 
@@ -1437,7 +1460,7 @@
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-      center: DEFAULT_CENTER,
+      center: START_COORDINATE,
       zoom: INITIAL_ZOOM,
       pitch: DEFAULT_PITCH,
       bearing: DEFAULT_BEARING,
@@ -1450,7 +1473,7 @@
     let selectedLocationKey = null;
 
     let controlMode = 'gps'; 
-    let isFPVEnabled = false;
+    let isFPVEnabled = true;
     let watchId = null;
 
     const modeIndicator = document.getElementById('mode-indicator');
@@ -1460,21 +1483,27 @@
     const blockSelectModal = document.getElementById('block-select-modal');
     const legendsToggleBtn = document.getElementById('legends-toggle-btn');
     const legendsPopup = document.getElementById('legends-popup');
+    const headingSlider = document.getElementById('heading-slider');
+    const markerHeadingRow = document.getElementById('marker-heading-row');
 
     let dashOffset = 0;
     let dashAnimationId = null;
 
     // --- DEVICE ORIENTATION COMPASS HEADING LISTENER ---
     function handleDeviceOrientation(e) {
+      // Ignore device orientation when in Manual Mode
+      if (controlMode === 'manual') return;
+
       let heading = null;
       if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
-        heading = e.webkitCompassHeading; // iOS Compass
+        heading = e.webkitCompassHeading;
       } else if (e.alpha !== null) {
-        heading = 360 - e.alpha; // Android Compass fallback
+        heading = 360 - e.alpha;
       }
 
       if (heading !== null && !isNaN(heading)) {
         userHeading = heading;
+        headingSlider.value = userHeading;
         updateVisionConeOrientation();
         if (isFPVEnabled) updateFPVCamera();
       }
@@ -1507,6 +1536,7 @@
 
           if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
             userHeading = position.coords.heading;
+            headingSlider.value = userHeading;
           }
 
           if (typeof userMarker !== 'undefined') {
@@ -1537,13 +1567,15 @@
         modeIndicator.textContent = 'Mode: Manual Controller (Joystick / WASD)';
         modeIndicator.classList.add('manual');
         joystickLeft.classList.add('active');
+        markerHeadingRow.style.display = 'flex';
       } else {
         controlMode = 'gps';
         modeIndicator.textContent = 'Mode: Live GPS';
         modeIndicator.classList.remove('manual');
         joystickLeft.classList.remove('active');
+        markerHeadingRow.style.display = 'none';
+        initDeviceOrientation();
       }
-      initDeviceOrientation();
     }
 
     modeIndicator.addEventListener('click', toggleControlMode);
@@ -1574,7 +1606,6 @@
       vectorObj.y = dy / JOYSTICK_RADIUS;
     }
 
-    // Left Joystick (Movement & Direction)
     joystickLeft.addEventListener('pointerdown', (e) => {
       leftJoyActive = true;
       joystickLeft.setPointerCapture(e.pointerId);
@@ -1625,7 +1656,6 @@
         });
       }
 
-      // --- ADD CUSTOM 3D CUBOID BUILDING MODEL LAYER ---
       map.addSource('custom-cuboid-source', {
         type: 'geojson',
         data: CUBOID_3D_GEOJSON
@@ -1646,7 +1676,6 @@
         }
       });
 
-      // --- DYNAMIC ANIMATED ROUTE SOURCE & LAYERS ---
       map.addSource('active-block-route-source', {
         type: 'geojson',
         data: {
@@ -1732,7 +1761,6 @@
         }
       });
 
-      // Tracking Line Layer
       map.addSource('straight-line-source', {
         type: 'geojson',
         data: {
@@ -1778,25 +1806,31 @@
       map.setBearing(val);
     });
 
+    headingSlider.addEventListener('input', (e) => {
+      userHeading = parseFloat(e.target.value);
+      updateVisionConeOrientation();
+      if (isFPVEnabled) updateFPVCamera();
+    });
+
     map.on('rotate', () => {
       const currentBearing = map.getBearing();
       bearingSlider.value = currentBearing;
     });
 
-    class FPVControl {
+    class TopDownControl {
       onAdd(map) {
         this._map = map;
         this._container = document.createElement('div');
         this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
         
         this._button = document.createElement('button');
-        this._button.className = 'fpv-btn';
+        this._button.className = 'topdown-btn';
         this._button.type = 'button';
-        this._button.title = 'Toggle First Person View';
+        this._button.title = 'Toggle Top-Down / FPV View';
         
         this._button.addEventListener('click', () => {
           isFPVEnabled = !isFPVEnabled;
-          this._button.classList.toggle('active', isFPVEnabled);
+          this._button.classList.toggle('active', !isFPVEnabled);
           toggleFPVMode(isFPVEnabled);
         });
 
@@ -1810,9 +1844,8 @@
       }
     }
 
-    map.addControl(new FPVControl(), 'bottom-right');
+    map.addControl(new TopDownControl(), 'bottom-right');
 
-    // Camera follows user marker orientation in FPV mode
     function updateFPVCamera() {
       map.jumpTo({
         center: currentUserCoords,
@@ -1833,9 +1866,9 @@
         });
       } else {
         map.easeTo({
-          pitch: DEFAULT_PITCH,
-          bearing: DEFAULT_BEARING,
-          zoom: INITIAL_ZOOM,
+          pitch: 0,
+          bearing: -14,
+          zoom: 16.3,
           duration: 1000
         });
       }
@@ -1848,19 +1881,17 @@
         e.stopPropagation();
 
         if (isFPVEnabled) {
-          isFPVEnabled = false;
-          const fpvBtn = document.querySelector('.fpv-btn');
-          if (fpvBtn) fpvBtn.classList.remove('active');
+          updateFPVCamera();
+        } else {
+          map.flyTo({
+            center: DEFAULT_CENTER,
+            zoom: 16.3,
+            pitch: 0,
+            bearing: -14,
+            duration: 1000,
+            essential: true
+          });
         }
-
-        map.flyTo({
-          center: DEFAULT_CENTER,
-          zoom: INITIAL_ZOOM,
-          pitch: DEFAULT_PITCH,
-          bearing: DEFAULT_BEARING,
-          duration: 1000,
-          essential: true
-        });
       }, true);
     }
 
@@ -2337,6 +2368,7 @@
 
               if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
                 userHeading = position.coords.heading;
+                headingSlider.value = userHeading;
               }
 
               userMarker.setLngLat(currentUserCoords);
@@ -2444,13 +2476,11 @@
 
       bX += bVX; bY += bVY;
 
-      // Wall bounce
       if (bY <= 0 || bY >= pongCanvas.height) {
         bVY = -bVY;
         createParticles(bX, bY, '#94a3b8', 5, 5);
       }
 
-      // Paddle bounce
       if (bX <= 40 + pW && bY >= p1Y && bY <= p1Y + pH && bVX < 0) {
         bVX = -bVX * 1.1; bVY += (bY - (p1Y + pH/2)) * 0.1; pFlash1 = 1;
         createParticles(40 + pW, bY, '#e11d48', 15, 10);
@@ -2460,7 +2490,6 @@
         createParticles(pongCanvas.width - 40 - pW, bY, '#38bdf8', 15, 10);
       }
 
-      // Scoring
       if (bX < 0) {
         s2++; goalMsg = { text: 'P2 GOAL!', alpha: 1 };
         createParticles(0, bY, '#38bdf8', 50, 15);
@@ -2471,17 +2500,14 @@
         resetPongBall();
       }
 
-      // Draw Paddles
       pongCtx.fillStyle = pFlash1 > 0 ? '#ffffff' : '#e11d48'; pFlash1 -= 0.05;
       pongCtx.fillRect(40, p1Y, pW, pH);
       pongCtx.fillStyle = pFlash2 > 0 ? '#ffffff' : '#38bdf8'; pFlash2 -= 0.05;
       pongCtx.fillRect(pongCanvas.width - 40 - pW, p2Y, pW, pH);
 
-      // Draw Ball
       pongCtx.fillStyle = '#ffffff';
       pongCtx.beginPath(); pongCtx.arc(bX, bY, 8, 0, Math.PI * 2); pongCtx.fill();
 
-      // Draw Scores & Center line
       pongCtx.fillStyle = 'rgba(255,255,255,0.2)';
       for(let i=0; i<pongCanvas.height; i+=40) pongCtx.fillRect(pongCanvas.width/2 - 2, i, 4, 20);
       pongCtx.font = 'bold 64px sans-serif'; pongCtx.textAlign = 'center';
@@ -2489,13 +2515,11 @@
       pongCtx.fillText(s1, pongCanvas.width/2 - 100, 80);
       pongCtx.fillText(s2, pongCanvas.width/2 + 100, 80);
 
-      // Draw Particles
       for(let i = particles.length - 1; i >= 0; i--) {
         particles[i].update(); particles[i].draw(pongCtx);
         if (particles[i].life <= 0) particles.splice(i, 1);
       }
 
-      // Draw Goal Msg
       if (goalMsg.alpha > 0) {
         pongCtx.globalAlpha = goalMsg.alpha;
         pongCtx.fillStyle = '#ffffff';
@@ -2577,11 +2601,13 @@
         // --- KEYBOARD ROTATION ---
         if (activeKeys['a'] || activeKeys['arrowleft']) {
           userHeading = (userHeading - ROTATE_STEP + 360) % 360;
+          headingSlider.value = userHeading;
           moved = true;
         }
 
         if (activeKeys['d'] || activeKeys['arrowright']) {
           userHeading = (userHeading + ROTATE_STEP) % 360;
+          headingSlider.value = userHeading;
           moved = true;
         }
 
@@ -2599,6 +2625,7 @@
           } else {
             const joyAngleDeg = (inputAngleRad * (180 / Math.PI) + 360) % 360;
             userHeading = joyAngleDeg;
+            headingSlider.value = userHeading;
 
             const movementRad = userHeading * (Math.PI / 180);
             const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
