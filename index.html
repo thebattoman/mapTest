@@ -327,7 +327,7 @@
       border-bottom-color: #1e3a8a;
     }
 
-    /* --- SINGLE JOYSTICK (MANUAL MODE) --- */
+    /* --- SINGLE LEFT JOYSTICK (MANUAL MODE) --- */
     .joystick-container {
       position: absolute;
       bottom: 160px;
@@ -1036,7 +1036,7 @@
   <!-- Mode Status Indicator (Clickable to Toggle Modes) -->
   <div id="mode-indicator" class="mode-indicator">Mode: Live GPS</div>
 
-  <!-- Single Joystick for Manual Mode -->
+  <!-- Touchscreen Left Joystick for Manual Mode -->
   <div id="joystick-left" class="joystick-container">
     <div class="joystick-label">Move</div>
     <div id="joystick-thumb-left" class="joystick-thumb"></div>
@@ -1514,8 +1514,9 @@
 
     modeIndicator.addEventListener('click', toggleControlMode);
 
-    // --- JOYSTICK CONTROL SYSTEM ---
+    // --- LEFT JOYSTICK CONTROL SYSTEM ---
     const JOYSTICK_RADIUS = 50;
+
     let leftJoyActive = false;
     let leftJoyVector = { x: 0, y: 0 };
 
@@ -1539,6 +1540,7 @@
       vectorObj.y = dy / JOYSTICK_RADIUS;
     }
 
+    // Left Joystick (Movement & Direction)
     joystickLeft.addEventListener('pointerdown', (e) => {
       leftJoyActive = true;
       joystickLeft.setPointerCapture(e.pointerId);
@@ -1776,6 +1778,7 @@
 
     map.addControl(new FPVControl(), 'bottom-right');
 
+    // Camera follows user marker orientation in FPV mode
     function updateFPVCamera() {
       map.jumpTo({
         center: currentUserCoords,
@@ -2428,6 +2431,7 @@
     });
     // --- END HIDDEN PONG GAME ---
 
+
     window.addEventListener('keydown', (e) => {
       if (document.activeElement === searchInput || imageModal.classList.contains('open') || blockSelectModal.classList.contains('open')) return;
       
@@ -2498,18 +2502,16 @@
           moved = true;
         }
 
-        // --- JOYSTICK MOVEMENT ---
+        // --- LEFT JOYSTICK MOVEMENT & HEADING UPDATE ---
         if (leftJoyActive && (Math.abs(leftJoyVector.x) > 0.1 || Math.abs(leftJoyVector.y) > 0.1)) {
-          const inputAngle = Math.atan2(leftJoyVector.x, -leftJoyVector.y);
-          const inputAngleDeg = inputAngle * (180 / Math.PI);
-          
-          // Set heading to joystick input angle relative to screen top
-          userHeading = (inputAngleDeg + 360) % 360;
+          // Calculate heading angle from Joystick tilt
+          const joyAngleDeg = (Math.atan2(leftJoyVector.x, -leftJoyVector.y) * (180 / Math.PI) + 360) % 360;
+          userHeading = joyAngleDeg;
 
+          const movementRad = userHeading * (Math.PI / 180);
           const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
           const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
 
-          const movementRad = userHeading * (Math.PI / 180);
           currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
           currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
           moved = true;
@@ -2538,17 +2540,13 @@
           currentUserCoords[1] = Math.max(BOUNDING_BOX[0][1], Math.min(BOUNDING_BOX[1][1], leftJoyActive ? currentUserCoords[1] : nextLat));
 
           userMarker.setLngLat(currentUserCoords);
-
-          // Update camera bearing to follow user orientation
-          if (!isFPVEnabled) {
-            map.setBearing(userHeading);
-          } else {
-            updateFPVCamera();
-          }
-
           updateVisionConeOrientation();
           updateStraightLine();
           updateNearestEntryMarker();
+
+          if (isFPVEnabled) {
+            updateFPVCamera();
+          }
         }
       }
 
