@@ -1466,19 +1466,17 @@
 
     // --- DEVICE ORIENTATION COMPASS HEADING LISTENER ---
     function handleDeviceOrientation(e) {
-      if (controlMode === 'gps') {
-        let heading = null;
-        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
-          heading = e.webkitCompassHeading; // iOS Compass
-        } else if (e.alpha !== null) {
-          heading = 360 - e.alpha; // Android Compass fallback
-        }
+      let heading = null;
+      if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+        heading = e.webkitCompassHeading; // iOS Compass
+      } else if (e.alpha !== null) {
+        heading = 360 - e.alpha; // Android Compass fallback
+      }
 
-        if (heading !== null && !isNaN(heading)) {
-          userHeading = heading;
-          updateVisionConeOrientation();
-          if (isFPVEnabled) updateFPVCamera();
-        }
+      if (heading !== null && !isNaN(heading)) {
+        userHeading = heading;
+        updateVisionConeOrientation();
+        if (isFPVEnabled) updateFPVCamera();
       }
     }
 
@@ -1544,8 +1542,8 @@
         modeIndicator.textContent = 'Mode: Live GPS';
         modeIndicator.classList.remove('manual');
         joystickLeft.classList.remove('active');
-        initDeviceOrientation();
       }
+      initDeviceOrientation();
     }
 
     modeIndicator.addEventListener('click', toggleControlMode);
