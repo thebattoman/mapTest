@@ -296,7 +296,7 @@
     /* --- MODE STATUS BADGE --- */
     .mode-indicator {
       position: absolute;
-      bottom: 150px;
+      bottom: 110px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
@@ -327,11 +327,9 @@
       border-bottom-color: #1e3a8a;
     }
 
-    /* --- SINGLE LEFT JOYSTICK (MANUAL MODE) --- */
+    /* --- TOUCHSCREEN JOYSTICKS (MANUAL MODE) --- */
     .joystick-container {
       position: absolute;
-      bottom: 180px;
-      left: 30px;
       width: 100px;
       height: 100px;
       background: rgba(255, 255, 255, 0.25);
@@ -346,6 +344,16 @@
 
     .joystick-container.active {
       display: block;
+    }
+
+    #joystick-left {
+      bottom: 160px;
+      left: 30px;
+    }
+
+    #joystick-right {
+      bottom: 90px;
+      right: 80px;
     }
 
     .joystick-thumb {
@@ -364,60 +372,26 @@
       transition: transform 0.05s ease-out;
     }
 
-    .joystick-label {
+    /* --- RADIAL BEARING SLIDER --- */
+    .bearing-control-container {
       position: absolute;
-      top: -22px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      font-weight: 800;
-      color: #1e3a8a;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 2px 8px;
-      border-radius: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-      pointer-events: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    /* --- SLIDERS CONTAINER --- */
-    .controls-sliders-container {
-      position: absolute;
-      bottom: 20px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
       padding: 8px 16px;
-      border-radius: 20px;
+      border-radius: 30px;
       box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2);
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .slider-row {
-      display: flex;
       align-items: center;
-      gap: 10px;
-    }
-
-    .slider-label {
-      font-size: 10px;
-      font-weight: 800;
-      color: #1e3a8a;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      width: 80px;
+      border: 1px solid #e2e8f0;
     }
 
     .bearing-slider {
       -webkit-appearance: none;
-      width: 140px;
+      width: 150px;
       height: 6px;
       border-radius: 3px;
       background: #e2e8f0;
@@ -1081,10 +1055,14 @@
   <!-- Mode Status Indicator (Clickable to Toggle Modes) -->
   <div id="mode-indicator" class="mode-indicator">Mode: Live GPS</div>
 
-  <!-- Touchscreen Left Joystick for Manual Mode -->
+  <!-- Left Joystick (Movement) for Manual Mode -->
   <div id="joystick-left" class="joystick-container">
-    <div class="joystick-label">Move</div>
     <div id="joystick-thumb-left" class="joystick-thumb"></div>
+  </div>
+
+  <!-- Right Joystick (Rotation) for Manual Mode -->
+  <div id="joystick-right" class="joystick-container">
+    <div id="joystick-thumb-right" class="joystick-thumb"></div>
   </div>
 
   <!-- Side Panel Button -->
@@ -1142,16 +1120,9 @@
     </div>
   </div>
 
-  <!-- Sliders Container -->
-  <div class="controls-sliders-container">
-    <div class="slider-row">
-      <span class="slider-label">Camera</span>
-      <input type="range" id="bearing-slider" class="bearing-slider" min="-180" max="180" value="220" />
-    </div>
-    <div id="marker-heading-row" class="slider-row" style="display: none;">
-      <span class="slider-label">Marker Angle</span>
-      <input type="range" id="heading-slider" class="bearing-slider" min="0" max="360" value="220" />
-    </div>
+  <!-- Radial Bearing Slider -->
+  <div class="bearing-control-container">
+    <input type="range" id="bearing-slider" class="bearing-slider" min="-180" max="180" value="-14" />
   </div>
 
   <!-- Gallery Toggle Button (Bottom-Left Corner) -->
@@ -1473,37 +1444,37 @@
     let selectedLocationKey = null;
 
     let controlMode = 'gps'; 
-    let isFPVEnabled = true;
+    let isFPVEnabled = true; // Set FPV Mode as default
     let watchId = null;
 
     const modeIndicator = document.getElementById('mode-indicator');
     const joystickLeft = document.getElementById('joystick-left');
     const joystickThumbLeft = document.getElementById('joystick-thumb-left');
+    const joystickRight = document.getElementById('joystick-right');
+    const joystickThumbRight = document.getElementById('joystick-thumb-right');
+
     const splashScreen = document.getElementById('splash-screen');
     const blockSelectModal = document.getElementById('block-select-modal');
     const legendsToggleBtn = document.getElementById('legends-toggle-btn');
     const legendsPopup = document.getElementById('legends-popup');
-    const headingSlider = document.getElementById('heading-slider');
-    const markerHeadingRow = document.getElementById('marker-heading-row');
 
     let dashOffset = 0;
     let dashAnimationId = null;
 
     // --- DEVICE ORIENTATION COMPASS HEADING LISTENER ---
     function handleDeviceOrientation(e) {
-      // Ignore device orientation when in Manual Mode
+      // Disregard device orientation while in manual controller mode
       if (controlMode === 'manual') return;
 
       let heading = null;
       if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
-        heading = e.webkitCompassHeading;
+        heading = e.webkitCompassHeading; // iOS Compass
       } else if (e.alpha !== null) {
-        heading = 360 - e.alpha;
+        heading = 360 - e.alpha; // Android Compass fallback
       }
 
       if (heading !== null && !isNaN(heading)) {
         userHeading = heading;
-        headingSlider.value = userHeading;
         updateVisionConeOrientation();
         if (isFPVEnabled) updateFPVCamera();
       }
@@ -1536,7 +1507,6 @@
 
           if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
             userHeading = position.coords.heading;
-            headingSlider.value = userHeading;
           }
 
           if (typeof userMarker !== 'undefined') {
@@ -1564,27 +1534,30 @@
     function toggleControlMode() {
       if (controlMode === 'gps') {
         controlMode = 'manual';
-        modeIndicator.textContent = 'Mode: Manual Controller (Joystick / WASD)';
+        modeIndicator.textContent = 'Mode: Manual Controller (Joysticks / WASD)';
         modeIndicator.classList.add('manual');
         joystickLeft.classList.add('active');
-        markerHeadingRow.style.display = 'flex';
+        joystickRight.classList.add('active');
       } else {
         controlMode = 'gps';
         modeIndicator.textContent = 'Mode: Live GPS';
         modeIndicator.classList.remove('manual');
         joystickLeft.classList.remove('active');
-        markerHeadingRow.style.display = 'none';
+        joystickRight.classList.remove('active');
         initDeviceOrientation();
       }
     }
 
     modeIndicator.addEventListener('click', toggleControlMode);
 
-    // --- LEFT JOYSTICK CONTROL SYSTEM ---
+    // --- DUAL JOYSTICK CONTROL SYSTEM ---
     const JOYSTICK_RADIUS = 50;
 
     let leftJoyActive = false;
     let leftJoyVector = { x: 0, y: 0 };
+
+    let rightJoyActive = false;
+    let rightJoyVector = { x: 0, y: 0 };
 
     function handleJoystickMove(container, thumb, clientX, clientY, vectorObj) {
       const rect = container.getBoundingClientRect();
@@ -1606,6 +1579,7 @@
       vectorObj.y = dy / JOYSTICK_RADIUS;
     }
 
+    // Left Joystick (Movement)
     joystickLeft.addEventListener('pointerdown', (e) => {
       leftJoyActive = true;
       joystickLeft.setPointerCapture(e.pointerId);
@@ -1626,6 +1600,28 @@
 
     joystickLeft.addEventListener('pointerup', resetLeftJoystick);
     joystickLeft.addEventListener('pointercancel', resetLeftJoystick);
+
+    // Right Joystick (Rotation & Orientation)
+    joystickRight.addEventListener('pointerdown', (e) => {
+      rightJoyActive = true;
+      joystickRight.setPointerCapture(e.pointerId);
+      handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
+    });
+
+    joystickRight.addEventListener('pointermove', (e) => {
+      if (rightJoyActive) {
+        handleJoystickMove(joystickRight, joystickThumbRight, e.clientX, e.clientY, rightJoyVector);
+      }
+    });
+
+    function resetRightJoystick() {
+      rightJoyActive = false;
+      rightJoyVector = { x: 0, y: 0 };
+      joystickThumbRight.style.transform = `translate(0px, 0px)`;
+    }
+
+    joystickRight.addEventListener('pointerup', resetRightJoystick);
+    joystickRight.addEventListener('pointercancel', resetRightJoystick);
 
     legendsToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1656,6 +1652,7 @@
         });
       }
 
+      // --- ADD CUSTOM 3D CUBOID BUILDING MODEL LAYER ---
       map.addSource('custom-cuboid-source', {
         type: 'geojson',
         data: CUBOID_3D_GEOJSON
@@ -1676,6 +1673,7 @@
         }
       });
 
+      // --- DYNAMIC ANIMATED ROUTE SOURCE & LAYERS ---
       map.addSource('active-block-route-source', {
         type: 'geojson',
         data: {
@@ -1761,6 +1759,7 @@
         }
       });
 
+      // Tracking Line Layer
       map.addSource('straight-line-source', {
         type: 'geojson',
         data: {
@@ -1806,12 +1805,6 @@
       map.setBearing(val);
     });
 
-    headingSlider.addEventListener('input', (e) => {
-      userHeading = parseFloat(e.target.value);
-      updateVisionConeOrientation();
-      if (isFPVEnabled) updateFPVCamera();
-    });
-
     map.on('rotate', () => {
       const currentBearing = map.getBearing();
       bearingSlider.value = currentBearing;
@@ -1846,6 +1839,7 @@
 
     map.addControl(new TopDownControl(), 'bottom-right');
 
+    // Camera follows user marker orientation in FPV mode
     function updateFPVCamera() {
       map.jumpTo({
         center: currentUserCoords,
@@ -2368,7 +2362,6 @@
 
               if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
                 userHeading = position.coords.heading;
-                headingSlider.value = userHeading;
               }
 
               userMarker.setLngLat(currentUserCoords);
@@ -2476,11 +2469,13 @@
 
       bX += bVX; bY += bVY;
 
+      // Wall bounce
       if (bY <= 0 || bY >= pongCanvas.height) {
         bVY = -bVY;
         createParticles(bX, bY, '#94a3b8', 5, 5);
       }
 
+      // Paddle bounce
       if (bX <= 40 + pW && bY >= p1Y && bY <= p1Y + pH && bVX < 0) {
         bVX = -bVX * 1.1; bVY += (bY - (p1Y + pH/2)) * 0.1; pFlash1 = 1;
         createParticles(40 + pW, bY, '#e11d48', 15, 10);
@@ -2490,6 +2485,7 @@
         createParticles(pongCanvas.width - 40 - pW, bY, '#38bdf8', 15, 10);
       }
 
+      // Scoring
       if (bX < 0) {
         s2++; goalMsg = { text: 'P2 GOAL!', alpha: 1 };
         createParticles(0, bY, '#38bdf8', 50, 15);
@@ -2500,14 +2496,17 @@
         resetPongBall();
       }
 
+      // Draw Paddles
       pongCtx.fillStyle = pFlash1 > 0 ? '#ffffff' : '#e11d48'; pFlash1 -= 0.05;
       pongCtx.fillRect(40, p1Y, pW, pH);
       pongCtx.fillStyle = pFlash2 > 0 ? '#ffffff' : '#38bdf8'; pFlash2 -= 0.05;
       pongCtx.fillRect(pongCanvas.width - 40 - pW, p2Y, pW, pH);
 
+      // Draw Ball
       pongCtx.fillStyle = '#ffffff';
       pongCtx.beginPath(); pongCtx.arc(bX, bY, 8, 0, Math.PI * 2); pongCtx.fill();
 
+      // Draw Scores & Center line
       pongCtx.fillStyle = 'rgba(255,255,255,0.2)';
       for(let i=0; i<pongCanvas.height; i+=40) pongCtx.fillRect(pongCanvas.width/2 - 2, i, 4, 20);
       pongCtx.font = 'bold 64px sans-serif'; pongCtx.textAlign = 'center';
@@ -2515,11 +2514,13 @@
       pongCtx.fillText(s1, pongCanvas.width/2 - 100, 80);
       pongCtx.fillText(s2, pongCanvas.width/2 + 100, 80);
 
+      // Draw Particles
       for(let i = particles.length - 1; i >= 0; i--) {
         particles[i].update(); particles[i].draw(pongCtx);
         if (particles[i].life <= 0) particles.splice(i, 1);
       }
 
+      // Draw Goal Msg
       if (goalMsg.alpha > 0) {
         pongCtx.globalAlpha = goalMsg.alpha;
         pongCtx.fillStyle = '#ffffff';
@@ -2598,16 +2599,19 @@
       if (controlMode === 'manual' && !pongActive) {
         let moved = false;
 
-        // --- KEYBOARD ROTATION ---
+        // --- RIGHT JOYSTICK / KEYBOARD ROTATION ---
+        if (rightJoyActive && Math.abs(rightJoyVector.x) > 0.05) {
+          userHeading = (userHeading + rightJoyVector.x * ROTATE_STEP * 1.5 + 360) % 360;
+          moved = true;
+        }
+
         if (activeKeys['a'] || activeKeys['arrowleft']) {
           userHeading = (userHeading - ROTATE_STEP + 360) % 360;
-          headingSlider.value = userHeading;
           moved = true;
         }
 
         if (activeKeys['d'] || activeKeys['arrowright']) {
           userHeading = (userHeading + ROTATE_STEP) % 360;
-          headingSlider.value = userHeading;
           moved = true;
         }
 
@@ -2615,25 +2619,12 @@
         if (leftJoyActive && (Math.abs(leftJoyVector.x) > 0.1 || Math.abs(leftJoyVector.y) > 0.1)) {
           const inputAngleRad = Math.atan2(leftJoyVector.x, -leftJoyVector.y);
 
-          if (isFPVEnabled) {
-            const moveAngleRad = userHeading * (Math.PI / 180) + inputAngleRad;
-            const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
-            const reducedSpeed = (MOVE_STEP * 0.35) * Math.min(1, speedFactor);
+          const moveAngleRad = userHeading * (Math.PI / 180) + inputAngleRad;
+          const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
+          const currentSpeed = (MOVE_STEP * 0.35) * Math.min(1, speedFactor);
 
-            currentUserCoords[0] += Math.sin(moveAngleRad) * reducedSpeed;
-            currentUserCoords[1] += Math.cos(moveAngleRad) * reducedSpeed;
-          } else {
-            const joyAngleDeg = (inputAngleRad * (180 / Math.PI) + 360) % 360;
-            userHeading = joyAngleDeg;
-            headingSlider.value = userHeading;
-
-            const movementRad = userHeading * (Math.PI / 180);
-            const speedFactor = Math.hypot(leftJoyVector.x, leftJoyVector.y);
-            const currentSpeed = MOVE_STEP * Math.min(1, speedFactor);
-
-            currentUserCoords[0] += Math.sin(movementRad) * currentSpeed;
-            currentUserCoords[1] += Math.cos(movementRad) * currentSpeed;
-          }
+          currentUserCoords[0] += Math.sin(moveAngleRad) * currentSpeed;
+          currentUserCoords[1] += Math.cos(moveAngleRad) * currentSpeed;
           moved = true;
         }
 
